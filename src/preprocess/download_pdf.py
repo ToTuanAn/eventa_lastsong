@@ -10,6 +10,7 @@ import json
 import glob
 from tqdm import tqdm
 from webdriver_manager.chrome import ChromeDriverManager
+import argparse
 
 # service = Service(ChromeDriverManager().install())
 # driver = webdriver.Chrome(service=service)
@@ -107,7 +108,37 @@ async def download_pdfs(db_path: str, pdf_output_root: str):
 
     return
 
+def split_db(db_path, output_path):
+    with open(db_path, "r") as f:
+        data_json = json.load(f)
+
+    split_json = {}
+    idx = 1
+
+    for article_key in tqdm(data_json):
+        while len(split_json) > len(data_json) // 20:
+            with open(f"{output_path}/splitted_database_{str(idx)}.json", "w") as f:
+                json.dump(split_json, f, indent=4)
+                split_json = {}
+                idx += 1
+        split_json[article_key] = data_json[article_key]
+
+    with open(f"{output_path}/splitted_database_{str(idx)}.json", "w") as f:
+        json.dump(split_json, f, indent=4)
+        split_json = {}
+        idx += 1
+    return
+
 if __name__ == "__main__":
-    DB_PATH = "/home/totuanan/Workplace/eventa_lastsong/data/Release/Database/database.json"
-    OUTPUT_PATH = "/home/totuanan/Workplace/eventa_lastsong/data/Release/Document_Pdf"
-    asyncio.run(download_pdfs(db_path=DB_PATH, pdf_output_root=OUTPUT_PATH))
+    parser = argparse.ArgumentParser(description="Simple argparse example")
+
+    # Add arguments
+    parser.add_argument('--db_path', type=str, default="/home/totuanan/Workplace/eventa_lastsong/data/Release/Database_Splitted/splitted_database_1.json", help='Input file path')
+    parser.add_argument('--output_path', type=str, default="/home/totuanan/Workplace/eventa_lastsong/data/Release/Document_Pdf", help='Output file path')
+
+    args = parser.parse_args()
+
+    asyncio.run(download_pdfs(db_path=args.db_path, pdf_output_root=args.output_path))
+    #
+    # OUTPUT_PATH =  "/home/totuanan/Workplace/eventa_lastsong/data/Release/Database_Splitted"
+    # split_db(DB_PATH, OUTPUT_PATH)
