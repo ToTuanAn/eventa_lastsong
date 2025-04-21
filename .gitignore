@@ -3,3 +3,4 @@ data/*
 *.xml
 *egg-info/*
 build/*
+.venv/*
