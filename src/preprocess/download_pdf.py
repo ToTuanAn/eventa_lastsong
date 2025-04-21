@@ -15,9 +15,9 @@ import argparse
 # service = Service(ChromeDriverManager().install())
 # driver = webdriver.Chrome(service=service)
 
-save_directory = "/home/totuanan/Workplace/eventa_lastsong/data/Release/Document_Pdf"  # Replace with the desired directory
 
-def url_to_pdf(url, output_pdf):
+
+def url_to_pdf(url, output_pdf, save_directory):
     # Set up Chrome options to run in headless mode
     options = webdriver.ChromeOptions()
     settings = {
@@ -92,7 +92,7 @@ def get_most_recent_file(directory):
     return recent_file
 
 
-async def download_pdfs(db_path: str, pdf_output_root: str):
+async def download_pdfs(db_path: str, pdf_output_root: str, save_directory: str):
     with open(db_path, "r") as f:
         data_json = json.load(f)
 
@@ -100,7 +100,7 @@ async def download_pdfs(db_path: str, pdf_output_root: str):
         if os.path.isfile(os.path.join(pdf_output_root,f"{article_key}.pdf")):
             continue
 
-        url_to_pdf(url=data_json[article_key]["url"],output_pdf=f"{article_key}.pdf")
+        url_to_pdf(url=data_json[article_key]["url"],output_pdf=f"{article_key}.pdf", save_directory=save_directory)
 
         if not os.path.isfile(os.path.join(pdf_output_root,f"{article_key}.pdf")):
             recent_file = get_most_recent_file(pdf_output_root)
@@ -135,10 +135,10 @@ if __name__ == "__main__":
     # Add arguments
     parser.add_argument('--db_path', type=str, default="/home/totuanan/Workplace/eventa_lastsong/data/Release/Database_Splitted/splitted_database_1.json", help='Input file path')
     parser.add_argument('--output_path', type=str, default="/home/totuanan/Workplace/eventa_lastsong/data/Release/Document_Pdf", help='Output file path')
-
+    parser.add_argument('--save_directory', type=str, default="/home/totuanan/Workplace/eventa_lastsong/data/Release/Document_Pdf")
     args = parser.parse_args()
 
-    asyncio.run(download_pdfs(db_path=args.db_path, pdf_output_root=args.output_path))
+    asyncio.run(download_pdfs(db_path=args.db_path, pdf_output_root=args.output_path, save_directory=args.save_directory))
     #
     # OUTPUT_PATH =  "/home/totuanan/Workplace/eventa_lastsong/data/Release/Database_Splitted"
     # split_db(DB_PATH, OUTPUT_PATH)
