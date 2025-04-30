@@ -12,10 +12,11 @@ from tqdm import tqdm
 from webdriver_manager.chrome import ChromeDriverManager
 import argparse
 
+from src.preprocess.cleaning_pdf import count_pdf_files
+
+
 # service = Service(ChromeDriverManager().install())
 # driver = webdriver.Chrome(service=service)
-
-
 
 def url_to_pdf(url, output_pdf, save_directory):
     # Set up Chrome options to run in headless mode
@@ -112,11 +113,16 @@ def split_db(db_path, output_path):
     with open(db_path, "r") as f:
         data_json = json.load(f)
 
+    doc_set = count_pdf_files()
+
     split_json = {}
-    idx = 1
+    idx = 401
 
     for article_key in tqdm(data_json):
-        while len(split_json) > len(data_json) // 20:
+        if article_key + ".pdf" in doc_set:
+            continue
+
+        while len(split_json) > len(data_json) // 400:
             with open(f"{output_path}/splitted_database_{str(idx)}.json", "w") as f:
                 json.dump(split_json, f, indent=4)
                 split_json = {}
@@ -130,15 +136,15 @@ def split_db(db_path, output_path):
     return
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Simple argparse example")
-
-    # Add arguments
-    parser.add_argument('--db_path', type=str, default="/home/totuanan/Workplace/eventa_lastsong/data/Release/Database_Splitted/splitted_database_1.json", help='Input file path')
-    parser.add_argument('--output_path', type=str, default="/home/totuanan/Workplace/eventa_lastsong/data/Release/Document_Pdf", help='Output file path')
-    parser.add_argument('--save_directory', type=str, default="/home/totuanan/Workplace/eventa_lastsong/data/Release/Document_Pdf")
-    args = parser.parse_args()
-
-    asyncio.run(download_pdfs(db_path=args.db_path, pdf_output_root=args.output_path, save_directory=args.save_directory))
+    # parser = argparse.ArgumentParser(description="Simple argparse example")
     #
-    # OUTPUT_PATH =  "/home/totuanan/Workplace/eventa_lastsong/data/Release/Database_Splitted"
-    # split_db(DB_PATH, OUTPUT_PATH)
+    # # Add arguments
+    # parser.add_argument('--db_path', type=str, default="/home/totuanan/Workplace/eventa_lastsong/data/Release/Database_Splitted/splitted_database_1.json", help='Input file path')
+    # parser.add_argument('--output_path', type=str, default="/home/totuanan/Workplace/eventa_lastsong/data/Release/Document_Pdf", help='Output file path')
+    # parser.add_argument('--save_directory', type=str, default="/home/totuanan/Workplace/eventa_lastsong/data/Release/Document_Pdf")
+    # args = parser.parse_args()
+    #
+    # asyncio.run(download_pdfs(db_path=args.db_path, pdf_output_root=args.output_path, save_directory=args.save_directory))
+
+    OUTPUT_PATH =  "/home/totuanan/Workplace/eventa_lastsong/data/Release/Database_Remain"
+    split_db("/home/totuanan/Workplace/eventa_lastsong/data/Release/Database/database.json", OUTPUT_PATH)
