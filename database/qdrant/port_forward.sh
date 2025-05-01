@@ -1,0 +1,1 @@
+kubectl port-forward -n qdrant service/qdrant-ilb 6333:6333
