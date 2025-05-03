@@ -114,26 +114,27 @@ def split_db(db_path, output_path):
         data_json = json.load(f)
 
     doc_set = count_pdf_files()
+    print(len(data_json))
 
-    split_json = {}
-    idx = 401
-
-    for article_key in tqdm(data_json):
-        if article_key + ".pdf" in doc_set:
-            continue
-
-        while len(split_json) > len(data_json) // 400:
-            with open(f"{output_path}/splitted_database_{str(idx)}.json", "w") as f:
-                json.dump(split_json, f, indent=4)
-                split_json = {}
-                idx += 1
-        split_json[article_key] = data_json[article_key]
-
-    with open(f"{output_path}/splitted_database_{str(idx)}.json", "w") as f:
-        json.dump(split_json, f, indent=4)
-        split_json = {}
-        idx += 1
-    return
+    # split_json = {}
+    # idx = 437
+    #
+    # for article_key in tqdm(data_json):
+    #     if article_key + ".pdf" in doc_set:
+    #         continue
+    #
+    #     while len(split_json) > len(data_json) // 400:
+    #         with open(f"{output_path}/splitted_database_{str(idx)}.json", "w") as f:
+    #             json.dump(split_json, f, indent=4)
+    #             split_json = {}
+    #             idx += 1
+    #     split_json[article_key] = data_json[article_key]
+    #
+    # with open(f"{output_path}/splitted_database_{str(idx)}.json", "w") as f:
+    #     json.dump(split_json, f, indent=4)
+    #     split_json = {}
+    #     idx += 1
+    # return
 
 if __name__ == "__main__":
     # parser = argparse.ArgumentParser(description="Simple argparse example")
