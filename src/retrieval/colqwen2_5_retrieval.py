@@ -1,0 +1,98 @@
+import pandas as pd
+import yaml
+from tqdm import tqdm
+
+from src.model.document_emb.colqwen2_5 import ColQwen25Model
+from src.retrieval.colqwen2_5_indexer import Colqwen25Retrieval
+
+if __name__ == "__main__":
+    df = pd.read_csv("/home/totuanan/Workplace/eventa_lastsong/data/gt_train.csv")
+
+    with open("/home/totuanan/Workplace/eventa_lastsong/src/config/model/colqwen2_5.yaml", "r") as file:
+        model_config = yaml.safe_load(file)
+
+    model = ColQwen25Model(model_config)
+
+    with open("/home/totuanan/Workplace/eventa_lastsong/src/config/indexer/colqwen2_5_retrieval.yaml", "r") as file:
+        retrieval_config = yaml.safe_load(file)
+
+    retrieval = Colqwen25Retrieval(retrieval_config)
+
+    caption_list, retrieval_list, label_list, acc_at1_list, acc_at3_list, acc_at5_list, acc_at10_list = [], [], [], [], [], [], []
+
+    for idx, row in tqdm(df.iterrows()):
+        input = row["caption"]
+
+        input_embedding = model.get_query_embedding(input).cpu().float().numpy().tolist()
+
+        label = row["retrieved_article_id"]
+
+        for i in range(5):
+            try:
+                response = retrieval.query(input_embedding)
+                break
+            except Exception as e:
+                print(f"Error: , {e}")
+                print(f"Fail this time. Retry {i} time")
+
+        article_list = []
+
+        for i in range(10):
+            article_list.append(response.points[i].payload['article_id'])
+
+        acc_at1 = any(item == label for item in article_list[:1])
+        acc_at3 = any(item == label for item in article_list[:3])
+        acc_at5 = any(item == label for item in article_list[:5])
+        acc_at10 = any(item == label for item in article_list[:10])
+
+        print(f"Finished {str(idx)} caption")
+
+        if int(int(idx)+1) % 1000 == 0:
+            print("Accuracy at 1: ", sum(acc_at1_list) / len(acc_at1_list))
+            print("Accuracy at 3: ", sum(acc_at3_list) / len(acc_at3_list))
+            print("Accuracy at 5: ", sum(acc_at5_list) / len(acc_at5_list))
+            print("Accuracy at 10: ", sum(acc_at10_list) / len(acc_at10_list))
+
+            with open("/data/evaluation_prefetch5000.txt", "a") as f:
+                f.write(f"Evaluation for {idx+1} captions \n")
+                f.write(f"Accuracy at 1: {sum(acc_at1_list) / len(acc_at1_list)} \n")
+                f.write(f"Accuracy at 3: {sum(acc_at3_list) / len(acc_at3_list)} \n")
+                f.write(f"Accuracy at 5: {sum(acc_at5_list) / len(acc_at5_list)} \n")
+                f.write(f"Accuracy at 10: {sum(acc_at10_list) / len(acc_at10_list)} \n")
+
+            result_df = pd.DataFrame({
+                "caption": caption_list,
+                "retrieval_list": retrieval_list,
+                "label": label_list,
+                "acc@1": acc_at1_list,
+                "acc@3": acc_at3_list,
+                "acc@5": acc_at5_list,
+                "acc@10": acc_at10_list
+            })
+
+            result_df.to_csv("/home/totuanan/Workplace/eventa_lastsong/data/result_prefetch5000.csv", index=False)
+
+        caption_list.append(input)
+        retrieval_list.append(article_list)
+        label_list.append(label)
+        acc_at1_list.append(acc_at1)
+        acc_at3_list.append(acc_at3)
+        acc_at5_list.append(acc_at5)
+        acc_at10_list.append(acc_at10)
+
+    print("Accuracy at 1: ", sum(acc_at1_list)/len(acc_at1_list))
+    print("Accuracy at 3: ", sum(acc_at3_list) / len(acc_at3_list))
+    print("Accuracy at 5: ", sum(acc_at5_list) / len(acc_at5_list))
+    print("Accuracy at 10: ", sum(acc_at10_list) / len(acc_at10_list))
+
+    result_df = pd.DataFrame({
+        "caption": caption_list,
+        "retrieval_list": retrieval_list,
+        "label": label_list,
+        "acc@1": acc_at1_list,
+        "acc@3": acc_at3_list,
+        "acc@5": acc_at5_list,
+        "acc@10": acc_at10_list
+    })
+
+    result_df.to_csv("/home/totuanan/Workplace/eventa_lastsong/data/result.csv", index=False)

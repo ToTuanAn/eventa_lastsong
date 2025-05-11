@@ -52,18 +52,17 @@ def clean_pdf(DB_PATH, ADS_PATH, DELETE_PATH):
                     os.rename(f"{pdf_file}", f"{delete_folder_path}/{pdf_file_name}")
                     break
 
-def count_pdf_files(doc_path="/home/totuanan/Workplace/eventa_lastsong/data/Release/Document_Pdf_Folder"):
+def count_pdf_files(doc_path="/home/totuanan/Workplace/eventa_lastsong/data/pdf_files"):
     doc_set = set()
     my_doc = []
-    for folder in tqdm(sorted(os.listdir(doc_path))):
-        folder_path = os.path.join(doc_path, folder)
-        for pdf_file in tqdm(glob.glob(f"{folder_path}/*.pdf")):
-            pdf_file_name = pdf_file.split("/")[-1]
-            if pdf_file_name not in doc_set:
-                doc_set.add(pdf_file_name)
-            else:
-                print(pdf_file_name)
-            my_doc.append(pdf_file_name)
+
+    for pdf_file in tqdm(glob.glob(f"{doc_path}/*.pdf")):
+        pdf_file_name = pdf_file.split("/")[-1]
+        if pdf_file_name not in doc_set:
+            doc_set.add(pdf_file_name)
+        else:
+            print(pdf_file_name)
+        my_doc.append(pdf_file_name)
 
     print("Total documents: ", len(doc_set))
     print(len(my_doc))

@@ -113,6 +113,7 @@ def split_db(db_path, output_path):
     with open(db_path, "r") as f:
         data_json = json.load(f)
 
+    print(len(data_json))
     doc_set = count_pdf_files()
     print(len(data_json))
 
