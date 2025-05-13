@@ -1,5 +1,4 @@
-import base64
-
+import os
 import pandas as pd
 import glob
 import random
@@ -10,46 +9,44 @@ import io
 from pdf2image import convert_from_path
 
 
-def data_cleaning(training_csv_path="/home/totuanan/Workplace/eventa_lastsong/data/Release/Train_Set/gt_train.csv"):
+def data_cleaning(training_csv_path="/home/totuanan/Workplace/eventa_lastsong/data/gt_train.csv"):
     df = pd.read_csv(training_csv_path)
 
-    pdf_folder = "/home/totuanan/Workplace/eventa_lastsong/data/Release/Document_Pdf_Folder"
+    pdf_folder = "/home/totuanan/Workplace/eventa_lastsong/data/pdf_files"
 
     idx = 1
     training_json = []
     total_records = len(df)
 
-
     for idx, row in df.iterrows():
         article_id = row["retrieved_article_id"]
         caption = row["caption"]
 
-        for file in glob.glob(f"{pdf_folder}/*/{article_id}.pdf"):
-            images = convert_from_path(file, dpi=300)
+        file = f"{pdf_folder}/{article_id}.pdf"
+        images = convert_from_path(file, dpi=300)
 
-            print("Num pages: ", len(images))
-            for image in images:
+        print("Num pages: ", len(images))
+        for j, image in enumerate(images):
 
-                if len(training_json) >= total_records // 10:
-                    random.shuffle(training_json)
-                    with open(f"/home/totuanan/Workplace/eventa_lastsong/data/Release/Train_Set/training_json/training_{idx}.json", "w", encoding="utf-8") as f:
-                        json.dump(training_json, f, indent=2, ensure_ascii=False)
-                    idx += 1
-                    training_json = []
+            if len(training_json) >= total_records // 5:
+                random.shuffle(training_json)
+                with open(f"/home/totuanan/Workplace/eventa_lastsong/data/training_json_2/training_{idx}.json", "w", encoding="utf-8") as f:
+                    json.dump(training_json, f, indent=2, ensure_ascii=False)
+                os.system(f"gsutil cp /home/totuanan/Workplace/eventa_lastsong/data/training_json_2/training_{idx}.json gs://eventa_pdf_bucket/training_json_2/training_{idx}.json")
+                training_json = []
 
-                buffer = io.BytesIO()
-                image.save(buffer, format="JPEG")
-                img_bytes = buffer.getvalue()
+            training_json.append({
+                "image": file,
+                "page": j,
+                "article_id": article_id,
+                "query": caption
+            })
 
-                training_json.append({
-                    "image": base64.b64encode(img_bytes).decode('utf-8'),
-                    "article_id": article_id,
-                    "query": caption
-                })
-        break
+        print(f"Finished caption {idx}")
 
-    with open(f"/home/totuanan/Workplace/eventa_lastsong/data/Release/Train_Set/training_json/training_{idx}.json", "w", encoding="utf-8") as f:
+    with open(f"/home/totuanan/Workplace/eventa_lastsong/data/training_json_2/training_{idx}.json", "w", encoding="utf-8") as f:
         json.dump(training_json, f, indent=2, ensure_ascii=False)
+    os.system(f"gsutil cp /home/totuanan/Workplace/eventa_lastsong/data/training_json_2/training_{idx}.json gs://eventa_pdf_bucket/training_json_2/training_{idx}.json")
 
 
 if __name__ == "__main__":

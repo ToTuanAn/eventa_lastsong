@@ -1,0 +1,5 @@
+processor:
+  name: "vidore/colqwen2.5-base"
+model:
+  name: "vidore/colqwen2.5-base"
+  peft_path: "/home/totuanan/Workplace/eventa_lastsong/opensource/colpali/checkpoints/checkpoint-10000"

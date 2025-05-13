@@ -1,7 +1,7 @@
-import uuid
 from qdrant_client import QdrantClient, models
 from src.model.document_emb.colqwen2_5 import ColQwen25Model
 from tqdm import tqdm
+import os
 import yaml
 from pdf2image import convert_from_path
 import glob
@@ -104,21 +104,18 @@ if __name__ == '__main__':
     with open("/home/totuanan/Workplace/eventa_lastsong/src/config/indexer/colqwen2_5_retrieval.yaml", "r") as file:
         retrieval_config = yaml.safe_load(file)
 
-
     retrieval = Colqwen25Retrieval(retrieval_config)
     try:
         response = retrieval.client.get_collection(retrieval.collection_name)
     except:
         retrieval.create()
 
-    idx = 0
-
-    for pdf_file in tqdm(glob.glob(f"/home/totuanan/Workplace/eventa_lastsong/data/temp/*.pdf")):
+    for pdf_file in tqdm(glob.glob(f"/home/totuanan/Workplace/eventa_lastsong/data/pdf_files/*.pdf")):
         image_batch = convert_from_path(pdf_file, dpi=300)
         article_id = pdf_file.split("/")[-1].replace(".pdf", "")
 
         original_batch, pooled_by_rows_batch, pooled_by_columns_batch = [], [], []
-        
+
         for idx in range(len(image_batch)):
             image = [image_batch[idx]]
 
@@ -162,6 +159,8 @@ if __name__ == '__main__':
                             ],
                             retrieval.collection_name
                         )
+
+            os.remove(pdf_file)
         except Exception as e:
             with open("/home/totuanan/Workplace/eventa_lastsong/fail.txt", "a") as f:
                 f.write(article_id)
