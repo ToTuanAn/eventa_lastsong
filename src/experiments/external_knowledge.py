@@ -66,8 +66,8 @@ def search_keywords_wiki(keyword):
     wiki_text = wikipedia.summary(wikipedia.search(keyword)[0], sentences=1, auto_suggest=False)
     return wiki_text
 
-def replace_keywords(text):
-    ner = ner_pipeline(text)
+def replace_keywords(model, text):
+    ner = model(text)
     keywords = merge_consecutive_entities(ner)
 
     for keyword in keywords:
@@ -86,5 +86,5 @@ if __name__ == "__main__":
     
     caption = """The image highlights the controversy surrounding Morocco's withdrawal from hosting the 2015 African Cup of Nations (AFCON) due to Ebola fears and its impact on CAF's decision-making process. It depicts CAF President Issa Hayatou, a central figure in this decision, alongside unidentified men in a formal setting, likely a conference room discussing the situation. Hayatou's attire suggests importance, while the image's slightly distorted quality hints at the tension and uncertainty surrounding the event. The location within the room, the white wall and black door, emphasizes the confined and decisive nature of the discussion. This snapshot captures a pivotal moment in AFCON history, showcasing the challenges faced by African nations in organizing major sporting events amidst global health concerns and the complex web of political and logistical considerations involved in such decisions."""
     
-    enhanced_caption = replace_keywords(caption)
+    enhanced_caption = replace_keywords(ner_pipeline, caption)
     print(f"Enhanced caption: {enhanced_caption}")
