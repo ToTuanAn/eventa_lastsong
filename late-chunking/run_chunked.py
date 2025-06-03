@@ -25,9 +25,10 @@ tokenizer = AutoTokenizer.from_pretrained(
 model = AutoModel.from_pretrained(
     "jinaai/jina-embeddings-v2-base-en", trust_remote_code=True, device_map=device
 )
+
 task_chunked_retrieval = AbsTaskChunkedRetrieval(
     chunking_strategy="semantic",
-    long_late_chunking_overlap_size=model.config.max_position_embeddings
+    long_late_chunking_embed_size=model.config.max_position_embeddings
 )
 
 def process_str(s):
@@ -84,11 +85,11 @@ for idx in tqdm(range(len(data_df))):
         )
         
         with torch.no_grad():
-            if inputs["input_ids"].shape[1] > model.config.max_position_embeddings:
-                model_output = task_chunked_retrieval._embed_with_overlap(model, inputs)
-                print(model_output.shape)
-            else:
-                model_output = model(**inputs)
+            model_output = task_chunked_retrieval._embed_with_overlap(model, inputs)
+            # if inputs["input_ids"].shape[1] > model.config.max_position_embeddings:
+            #     print(model_output.shape)
+            # else:
+            #     model_output = model(**inputs)
 
         # Perform chunked pooling
         embeddings = chunked_pooling(model_output, [span_annotations])[0]
@@ -114,7 +115,7 @@ for idx in tqdm(range(len(data_df))):
         #     ],
         # )
 
-        if _i % 200 == 0:
+        if _i % 500 == 0:
             data_df.to_parquet(f"../processed_data/{db_name}_chunk_emb.parquet")
 
     except Exception as e:
