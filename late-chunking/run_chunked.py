@@ -14,6 +14,7 @@ from chunked_pooling import (
     chunk_by_config,
     chunk_by_config2,
 )
+from chunked_pooling.mteb_chunked_eval import AbsTaskChunkedRetrieval
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -23,6 +24,10 @@ tokenizer = AutoTokenizer.from_pretrained(
 )
 model = AutoModel.from_pretrained(
     "jinaai/jina-embeddings-v2-base-en", trust_remote_code=True, device_map=device
+)
+task_chunked_retrieval = AbsTaskChunkedRetrieval(
+    chunking_strategy="semantic",
+    long_late_chunking_overlap_size=model.config.max_position_embeddings
 )
 
 def process_str(s):
@@ -44,10 +49,15 @@ data_df = data_df.reset_index(drop=True)
 data_df["row_number"] = data_df.index
 data_df["chunk_emb"] = ["" for _ in range(len(data_df))]
 
-for idx, row in tqdm(data_df.iterrows(), total=len(data_df)):
+_i = 0
+
+for idx in tqdm(range(len(data_df))):
+    row = data_df.iloc[idx]
     if row["chunk_emb"] != "":
+        # print(f"Skipping already processed row {idx} for article_id {row['article_id']}")
         continue
     try:
+        _i += 1
         article_group_df = data_df[
             data_df["article_id"] == row["article_id"]
         ].sort_values("chunk_index")
@@ -59,14 +69,26 @@ for idx, row in tqdm(data_df.iterrows(), total=len(data_df)):
 
         article_context = " ".join(chunk_contents)
 
+        inputs = tokenizer(article_context, return_tensors="pt")
+
+        # Check if input exceeds max length
+        # if inputs["input_ids"].shape[1] < model.config.max_position_embeddings:
+        #     # print(f"Input exceeds max length for article_id {row['article_id']}. Skipping.")
+        #     continue
+        inputs = {k: v.to(device) for k, v in inputs.items()}
+
+        # print(f"Processing article_id {row['article_id']} with {len(chunk_contents)} chunks")
+
         chunks, span_annotations = chunk_by_config2(
             article_context, tokenizer, chunk_contents
         )
-
-        inputs = tokenizer(article_context, return_tensors="pt")
-        inputs = {k: v.to(device) for k, v in inputs.items()}
+        
         with torch.no_grad():
-            model_output = model(**inputs)
+            if inputs["input_ids"].shape[1] > model.config.max_position_embeddings:
+                model_output = task_chunked_retrieval._embed_with_overlap(model, inputs)
+                print(model_output.shape)
+            else:
+                model_output = model(**inputs)
 
         # Perform chunked pooling
         embeddings = chunked_pooling(model_output, [span_annotations])[0]
@@ -74,13 +96,25 @@ for idx, row in tqdm(data_df.iterrows(), total=len(data_df)):
         
         # Save the embeddings of each chunk into the dataframe
         for i, chunk in enumerate(chunks):
-            data_df.loc[
-                (data_df["article_id"] == row["article_id"])
-                & (data_df["chunk_index"] == article_group_df.iloc[i]["chunk_index"]),
-                "chunk_emb"
-            ] = json.dumps(embeddings[i].tolist())
+            idx_to_update = article_group_df.index[i]
+            data_df.at[idx_to_update, "chunk_emb"] = json.dumps(embeddings[i].tolist())
 
-        if idx % 500 == 0:
+        #     print(f"Processed chunk {i+1}/{len(chunks)} for article_id {row['article_id']}")
+        # print(f"Updating vectors for article_id {row['article_id']} with {len(embeddings)} embeddings.")
+
+        # qdrant_client.update_vectors(
+        #     collection_name=collection_name,
+        #     points=[
+        #         models.PointVectors(
+        #             id=id,  # chunk id
+        #             vector={
+        #                 "jinaai/jina-embeddings-v2-base-en": embed,
+        #             },
+        #         ) for id, embed in zip(article_group_df["chunk_id"].tolist(), embeddings)
+        #     ],
+        # )
+
+        if _i % 200 == 0:
             data_df.to_parquet(f"../processed_data/{db_name}_chunk_emb.parquet")
 
     except Exception as e:
@@ -89,4 +123,4 @@ for idx, row in tqdm(data_df.iterrows(), total=len(data_df)):
         continue
 
 
-data_df.to_parquet(f"../processed_data/{db_name}_chunk_emb.{ext}", engine="auto")
+data_df.to_parquet(f"../processed_data/{db_name}.{ext}", engine="auto")
