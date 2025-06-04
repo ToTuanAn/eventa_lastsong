@@ -84,15 +84,24 @@ for idx in tqdm(range(len(data_df))):
             article_context, tokenizer, chunk_contents
         )
         
-        with torch.no_grad():
-            model_output = task_chunked_retrieval._embed_with_overlap(model, inputs)
-            # if inputs["input_ids"].shape[1] > model.config.max_position_embeddings:
-            #     print(model_output.shape)
-            # else:
-            #     model_output = model(**inputs)
+        with torch.no_grad():                
+            if inputs["input_ids"].shape[1] > model.config.max_position_embeddings:
+                model_outputs = task_chunked_retrieval._embed_with_overlap(model, inputs)
+                output_embs = chunked_pooling(
+                    [model_outputs], [span_annotations], max_length=None
+                )
+            else:
+                model_outputs = model(**inputs)
+                output_embs = chunked_pooling(
+                    model_outputs,
+                    [span_annotations],
+                    max_length=model.config.max_position_embeddings,
+                )
+
+        embeddings = output_embs[0]
 
         # Perform chunked pooling
-        embeddings = chunked_pooling(model_output, [span_annotations])[0]
+        # embeddings = chunked_pooling([model_outputs], [span_annotations])[0]
         assert len(chunks) == len(chunk_contents) == len(embeddings), f"Length mismatch: {len(chunks)}, {len(chunk_contents)}, {len(embeddings)}"
         
         # Save the embeddings of each chunk into the dataframe
@@ -115,7 +124,7 @@ for idx in tqdm(range(len(data_df))):
         #     ],
         # )
 
-        if _i % 500 == 0:
+        if _i % 1000 == 0:
             data_df.to_parquet(f"../processed_data/{db_name}_chunk_emb.parquet")
 
     except Exception as e:

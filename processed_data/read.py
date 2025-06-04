@@ -13,4 +13,5 @@ if __name__ == "__main__":
     # Example usage
     file_path = ".\\database_v4_chunk_emb.parquet"
     df = read_parquet(file_path)
+    print(df[0, "chunk_emb"])
     print(df.filter(pl.col("chunk_emb") == "").count())
