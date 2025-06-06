@@ -1,4 +1,9 @@
+# processor:
+#   name: "/home/totuanan/Workplace/eventa_lastsong/opensource/colpali/checkpoints/checkpoint-10000"
+# model:
+#   name: "/home/totuanan/Workplace/eventa_lastsong/opensource/colpali/checkpoints/checkpoint-10000"
+
 processor:
-  name: "/home/totuanan/Workplace/eventa_lastsong/opensource/colpali/checkpoints/checkpoint-10000"
+ name: "vidore/colqwen2.5-v0.2"
 model:
-  name: "/home/totuanan/Workplace/eventa_lastsong/opensource/colpali/checkpoints/checkpoint-10000"
+ name: "vidore/colqwen2.5-v0.2"

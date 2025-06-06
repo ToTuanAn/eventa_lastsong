@@ -8,3 +8,10 @@ build/*
 models/*
 checkpoints/*
 wandb/*
+*.json 
+*.pth
+*.pt
+*.bin
+*.wandb
+*.gz
+*.safetensors

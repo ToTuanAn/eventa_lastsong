@@ -1,6 +1,7 @@
 import base64
 from typing import Any, Dict, List, Union, cast
 from PIL import Image
+from pdf2image import convert_from_path
 import io
 
 from colpali_engine.models.paligemma import ColPaliProcessor
@@ -54,12 +55,12 @@ class VisualRetrieverCollator:
             texts_query.append(query)
 
             image = example.get("image")
+            page = example.get("page")
             if image is None:
                 raise ValueError("Image is None - This collator does not support None images yet.")
             if isinstance(image, str):
-                img_bytes = base64.b64decode(image)
-                buffer = io.BytesIO(img_bytes)
-                image = Image.open(buffer)
+                images_pdf = convert_from_path(image, dpi=300)
+                image = images_pdf[page]
 
             images.append(cast(Image.Image, image))
 

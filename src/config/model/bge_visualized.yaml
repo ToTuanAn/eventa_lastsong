@@ -1,0 +1,3 @@
+model:
+  name: "BAAI/bge-m3"
+  model_weight: "/home/totuanan/Workplace/eventa_lastsong/model_path/Visualized_m3.pth"

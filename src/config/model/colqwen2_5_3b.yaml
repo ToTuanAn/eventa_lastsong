@@ -1,0 +1,4 @@
+processor:
+ name: "tsystems/colqwen2.5-3b-multilingual-v1.0"
+model:
+ name: "tsystems/colqwen2.5-3b-multilingual-v1.0"

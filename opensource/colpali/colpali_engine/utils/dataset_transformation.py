@@ -147,7 +147,7 @@ def load_train_set_with_docmatix() -> DatasetDict:
 
 def load_train_set_eventa() -> DatasetDict:
     ds_tot: List[Dataset] = []
-    for json_file in glob.glob(f"/home/totuanan/Workplace/eventa_lastsong/data/Release/Train_Set/training_json/*.json"):
+    for json_file in glob.glob(f"/home/totuanan/Workplace/eventa_lastsong/data/training_json_2/*.json"):
         with open(json_file) as f:
             json_file = json.load(f)
 
@@ -157,8 +157,8 @@ def load_train_set_eventa() -> DatasetDict:
 
     dataset = concatenate_datasets(ds_tot)
     dataset = dataset.shuffle(seed=42)
-    dataset_eval = dataset.select(range(1))
-    dataset = dataset.select(range(1, len(dataset)))
+    dataset_eval = dataset.select(range(int(len(dataset) * 0.15)))
+    dataset = dataset.select(range(int(len(dataset) * 0.15), len(dataset)))
     ds_dict = DatasetDict({"train": dataset, "test": dataset_eval})
     return ds_dict
 

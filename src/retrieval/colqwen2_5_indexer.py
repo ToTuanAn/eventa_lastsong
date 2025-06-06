@@ -96,12 +96,12 @@ if __name__ == '__main__':
         database = json.load(f)
 
     # Load from file
-    with open("/home/totuanan/Workplace/eventa_lastsong/src/config/model/colqwen2_5.yaml", "r") as file:
+    with open("/home/totuanan/Workplace/eventa_lastsong/src/config/model/colqwen2_5_3b.yaml", "r") as file:
         model_config = yaml.safe_load(file)
 
     model = ColQwen25Model(model_config)
 
-    with open("/home/totuanan/Workplace/eventa_lastsong/src/config/indexer/colqwen2_5_retrieval.yaml", "r") as file:
+    with open("/home/totuanan/Workplace/eventa_lastsong/src/config/indexer/colqwen2_5_3b_retrieval_baseline.yaml", "r") as file:
         retrieval_config = yaml.safe_load(file)
 
     retrieval = Colqwen25Retrieval(retrieval_config)
