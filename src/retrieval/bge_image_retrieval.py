@@ -64,10 +64,10 @@ if __name__ == "__main__":
                     image_file = f"{image_path}/{image_id}.jpg"
 
                     if os.path.exists(image_file):
-                        if len(database[article]["title"]) >= 29000:
-                            database[article]["title"] = database[article]["title"][:29000]
+                        # if len(database[article]["title"]) >= 29000:
+                        #     database[article]["title"] = database[article]["title"][:29000]
 
-                        image_emb = model.embed(image_file=image_file,text=database[article]["title"])
+                        image_emb = model.embed(image_file=image_file,text=None)
                         
 
                         if image_emb is not None:
