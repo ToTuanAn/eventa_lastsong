@@ -6,14 +6,14 @@ from src.model.document_emb.colqwen2_5 import ColQwen25Model
 from src.retrieval.colqwen2_5_indexer import Colqwen25Retrieval
 
 if __name__ == "__main__":
-    df = pd.read_csv("/home/totuanan/Workplace/eventa_lastsong/data/query.csv")
+    df = pd.read_csv("/home/totuanan/Workplace/eventa_lastsong/data/private_query.csv")
 
-    with open("/home/totuanan/Workplace/eventa_lastsong/src/config/model/colqwen2_5_3b.yaml", "r") as file:
+    with open("/home/totuanan/Workplace/eventa_lastsong/src/config/model/colqwen2_5.yaml", "r") as file:
         model_config = yaml.safe_load(file)
 
     model = ColQwen25Model(model_config)
 
-    with open("/home/totuanan/Workplace/eventa_lastsong/src/config/indexer/colqwen2_5_3b_retrieval_baseline.yaml", "r") as file:
+    with open("/home/totuanan/Workplace/eventa_lastsong/src/config/indexer/colqwen2_5_retrieval_baseline.yaml", "r") as file:
         retrieval_config = yaml.safe_load(file)
 
     retrieval = Colqwen25Retrieval(retrieval_config)
@@ -76,7 +76,7 @@ if __name__ == "__main__":
                 # "acc@10": acc_at10_list
             })
 
-            result_df.to_csv("/home/totuanan/Workplace/eventa_lastsong/data/colqwen_3b_result.csv", index=False)
+            result_df.to_csv("/home/totuanan/Workplace/eventa_lastsong/data/private_colqwen_result.csv", index=False)
 
         caption_list.append(input)
         retrieval_list.append(article_list)
@@ -105,4 +105,4 @@ if __name__ == "__main__":
         # "acc@10": acc_at10_list
     })
 
-    result_df.to_csv("/home/totuanan/Workplace/eventa_lastsong/data/colqwen_3b_result.csv", index=False)
+    result_df.to_csv("/home/totuanan/Workplace/eventa_lastsong/data/private_colqwen_result.csv", index=False)

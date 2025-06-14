@@ -11,7 +11,7 @@ import pandas as pd
 import ast
 from src.model.image_emb.bge import BgeVisualizedModel
 
-TOP_K_ARTICLE_LIST = [8, 9, 10]
+TOP_K_ARTICLE_LIST = [13, 15, 20]
 
 if __name__ == "__main__":
     for k in TOP_K_ARTICLE_LIST:
@@ -26,7 +26,7 @@ if __name__ == "__main__":
 
         image_path = "/home/totuanan/Workplace/eventa_lastsong/data/database_compressed_images/database_images_compressed90"
 
-        df = pd.read_csv("/home/totuanan/Workplace/eventa_lastsong/data/colqwen3b_bm42_jina_v3_hotpot_reranked.csv")
+        df = pd.read_csv("/home/totuanan/Workplace/eventa_lastsong/data/private_test_jina-reranker-v2-base-multilingual.csv")
 
         df_image_list = []
         df_image_score = []
@@ -34,8 +34,8 @@ if __name__ == "__main__":
         df_final_image_score = []
 
         for ix, row in df.iterrows():
-            article_list = row["new_article_list"]
-            article_score = row["new_article_score"]
+            article_list = row["article_list"]
+            article_score = row["article_score"]
             image_list_dict = {}
 
             result_list_dict = {
@@ -64,10 +64,10 @@ if __name__ == "__main__":
                     image_file = f"{image_path}/{image_id}.jpg"
 
                     if os.path.exists(image_file):
-                        # if len(database[article]["content"]) >= 29000:
-                        #     database[article]["content"] = database[article]["content"][:29000]
+                        if len(database[article]["title"]) >= 29000:
+                            database[article]["title"] = database[article]["title"][:29000]
 
-                        image_emb = model.embed(image_file=image_file,text=None)
+                        image_emb = model.embed(image_file=image_file,text=database[article]["title"])
                         
 
                         if image_emb is not None:
@@ -113,4 +113,4 @@ if __name__ == "__main__":
         df["final_image_list"] = df_final_image_list
         df["final_image_score"] = df_final_image_score
 
-        df.to_csv(f"/home/totuanan/Workplace/eventa_lastsong/data/colqwen3b_bm42_jina_v3_hotpot_reranked_{k}.csv",index=False)
+        df.to_csv(f"/home/totuanan/Workplace/eventa_lastsong/data/private_test_jina-reranker-v2-base-multilingual_title_{k}.csv",index=False)

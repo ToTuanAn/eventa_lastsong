@@ -7,5 +7,5 @@ qdrant:
   api_key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJtIn0.9PNh2uMOZeVlGDG-FZ6GDdq_SajIsZeGmBpxHUpYL2o"
   collection_name: "eventa_document_embeddings_collection_3b"
 params:
-  prefetch_limit: 4000
+  prefetch_limit: 3500
   search_limit: 10
